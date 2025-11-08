@@ -1,12 +1,13 @@
 # QWER Band API - JavaScript/Node.js Version
 
-[![Go](https://img.shields.io/badge/Go-1.21-00ADD8?logo=go&logoColor=white)](https://go.dev/)
+[![Node.js](https://img.shields.io/badge/Node.js-14+-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
 [![Status](https://img.shields.io/badge/Status-Active-success)](#)
-[![License](https://img.shields.io/badge/License-Copyright%20Kiy0w0%202025-blue)](#license)
+[![License](https://img.shields.io/badge/License-MIT-blue)](LICENSE)
 
 
 ![Qwer Band](public/qwer/group.webp)
-Simple REST API for QWER band data (albums, songs, members, awards). Built with Go
+
+Simple REST API for QWER band data (albums, songs, members, awards). Built with Node.js and Express.js
 
 ## 🚀 Features
 
@@ -192,7 +193,9 @@ jsqwer/
 
 ## 📄 License
 
-MIT License - See LICENSE file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+Copyright (c) 2025 Kiy0w0
 
 ## 👨‍💻 Author
 
