@@ -1,0 +1,14 @@
+node_modules
+.env
+*.log
+.DS_Store
+README.md
+DEPLOY_CPANEL.md
+DEPLOYMENT_CHECKLIST.md
+QUICK_START.md
+START_HERE.md
+SUMMARY_DEPLOYMENT.txt
+.htaccess
+.env.example
+.gitignore
+

@@ -1,0 +1,56 @@
+# Enable Node.js application
+# This file is used for cPanel deployment with Node.js application
+
+# Rewrite rules for Node.js app
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    
+    # Forward all requests to index.html for SPA routing
+    # Uncomment if using client-side routing
+    # RewriteCond %{REQUEST_FILENAME} !-f
+    # RewriteCond %{REQUEST_FILENAME} !-d
+    # RewriteRule ^(.*)$ /index.html [L]
+
+    # Redirect all traffic to Node.js application
+    # Note: In cPanel, Node.js apps typically run on a specific port
+    # and are proxied through Apache
+    RewriteCond %{REQUEST_URI} !^/public/
+    RewriteRule ^(.*)$ http://localhost:8080/$1 [P,L]
+</IfModule>
+
+# Set CORS headers
+<IfModule mod_headers.c>
+    Header set Access-Control-Allow-Origin "*"
+    Header set Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
+    Header set Access-Control-Allow-Headers "Content-Type, Authorization"
+</IfModule>
+
+# Enable compression
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/json
+</IfModule>
+
+# Set caching for static assets
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType image/jpeg "access plus 1 year"
+    ExpiresByType image/png "access plus 1 year"
+    ExpiresByType image/webp "access plus 1 year"
+    ExpiresByType text/css "access plus 1 month"
+    ExpiresByType application/javascript "access plus 1 month"
+</IfModule>
+
+# Prevent directory browsing
+Options -Indexes
+
+# Protect sensitive files
+<FilesMatch "^\.">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+<FilesMatch "(package\.json|server\.js|\.env)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+

@@ -1,0 +1,25 @@
+{
+  "name": "qwer-api",
+  "version": "1.0.0",
+  "description": "QWER Band API - REST API for QWER band information, members, songs, albums, and awards",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "keywords": ["qwer", "kpop", "band", "api", "rest"],
+  "author": "Kiy0w0",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "express-rate-limit": "^6.11.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}
+
