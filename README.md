@@ -44,58 +44,6 @@ npm run dev
 
 Server will run at `http://localhost:8080`
 
-## 🌐 Deployment
-
-### Deploy to Vercel (Recommended)
-
-1. **Push to GitHub:**
-```bash
-git init
-git add .
-git commit -m "Initial commit"
-git remote add origin https://github.com/YOUR_USERNAME/qwer-api.git
-git push -u origin main
-```
-
-2. **Deploy on Vercel:**
-   - Go to https://vercel.com
-   - Import your GitHub repository
-   - Click Deploy
-   - Add custom domain (e.g., api.yourdomain.com)
-
-3. **Configure DNS:**
-   - Add CNAME record: `api` → `cname.vercel-dns.com`
-   - Wait for SSL certificate to be issued
-
-### Deploy to cPanel
-
-1. **Setup Node.js App in cPanel:**
-   - Login to cPanel
-   - Navigate to **"Setup Node.js App"**
-   - Click **"Create Application"**
-   - Configure:
-     - **Node.js version**: v14 or higher
-     - **Application mode**: Production
-     - **Application root**: `~/qwer-api`
-     - **Application startup file**: `server.js`
-     - **Environment variables**: `PORT=8080`
-
-2. **Upload Files:**
-   - Via File Manager, FTP, or Git
-   - Upload all project files
-
-3. **Install Dependencies:**
-   - In cPanel Node.js App menu
-   - Click "Run NPM Install"
-
-4. **Start Application:**
-   - Click "Start App"
-   - Verify status is "Running"
-
-5. **Verify:**
-   - Website: `https://yourdomain.com/`
-   - API: `https://yourdomain.com/api`
-   - Docs: `https://yourdomain.com/docs`
 
 ## 📚 API Endpoints
 
