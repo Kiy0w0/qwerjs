@@ -147,11 +147,6 @@ cd ~/path/to/your/app
 npm install
 ```
 
-### App not running
-1. Check logs in cPanel Node.js App menu
-2. Ensure `server.js` is in root folder
-3. Restart the application
-
 ### CORS errors
 CORS is already enabled. If you still get errors, check Apache/Nginx configuration.
 
