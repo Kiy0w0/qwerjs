@@ -38,11 +38,6 @@
       "dest": "/server.js"
     }
   ],
-  "env": {
-    "NODE_ENV": "production",
-    "GOOGLE_API_KEY": "@google_api_key",
-    "GOOGLE_CX": "@google_cx"
-  },
   "regions": [
     "sin1"
   ]
