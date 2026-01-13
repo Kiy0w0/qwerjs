@@ -1,34 +1,72 @@
 openapi: 3.0.3
 info:
   title: QWER Band API
-  version: 1.0.0
-  description: REST API for QWER band information
+  version: 1.2.0
+  description: |
+    REST API for QWER band information, members, songs, albums, awards, and auto-updating member photos.
+    
+    ## Features
+    - 🎸 Complete QWER band data
+    - 📸 Auto-updating member photos from Google
+    - 🎲 Random endpoints for songs, members, and fun facts
+    - 🔍 Search and filter capabilities
+    - 📄 Pagination support
+  contact:
+    name: Kiy0w0
+    url: https://github.com/kiy0w0/qwerjs
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
 servers:
   - url: /
+    description: Current server
+tags:
+  - name: Core
+    description: Core band data endpoints
+  - name: Images
+    description: Image and photo endpoints
+  - name: Random
+    description: Random content endpoints
+  - name: Photos
+    description: Google-powered member photos
+
 paths:
   /api:
     get:
+      tags: [Core]
       summary: API info
+      description: Get API information and available endpoints
       responses:
-        '200': { description: OK }
+        '200':
+          description: API information retrieved successfully
+
   /api/band:
     get:
-      summary: Get band info with members, discography, awards
+      tags: [Core]
+      summary: Get band info
+      description: Get complete QWER band information with members, discography, and awards
       responses:
-        '200': { description: OK }
+        '200':
+          description: Band information retrieved successfully
+
   /api/members:
     get:
+      tags: [Core]
       summary: List members
+      description: Get all members or filter by ID, name, or search query
       parameters:
         - in: query
           name: id
           schema: { type: integer }
+          description: Member ID
         - in: query
           name: name
           schema: { type: string }
+          description: Member name or stage name
         - in: query
           name: search
           schema: { type: string }
+          description: Search in name/stage/position
         - in: query
           name: sort
           schema: { type: string, enum: [name, stage_name] }
@@ -39,10 +77,49 @@ paths:
           name: limit
           schema: { type: integer, default: 50 }
       responses:
-        '200': { description: OK }
+        '200':
+          description: Members retrieved successfully
+
+  /api/members/{name}/photos:
+    get:
+      tags: [Photos]
+      summary: Get member photos from Google
+      description: Fetch photos of a specific member from Google Image Search (cached for 6 hours)
+      parameters:
+        - in: path
+          name: name
+          required: true
+          schema: { type: string, enum: [chodan, magenta, hina, siyeon] }
+          description: Member stage name (lowercase)
+        - in: query
+          name: refresh
+          schema: { type: boolean, default: false }
+          description: Force refresh from Google
+      responses:
+        '200':
+          description: Photos retrieved successfully
+        '404':
+          description: Member not found
+
+  /api/members/{name}/photos/random:
+    get:
+      tags: [Photos]
+      summary: Get random member photo
+      description: Get a random photo of a specific member
+      parameters:
+        - in: path
+          name: name
+          required: true
+          schema: { type: string, enum: [chodan, magenta, hina, siyeon] }
+      responses:
+        '200':
+          description: Random photo retrieved successfully
+
   /api/albums:
     get:
+      tags: [Core]
       summary: List albums
+      description: Get all albums or filter by ID, title, or search query
       parameters:
         - in: query
           name: id
@@ -63,10 +140,14 @@ paths:
           name: limit
           schema: { type: integer, default: 50 }
       responses:
-        '200': { description: OK }
+        '200':
+          description: Albums retrieved successfully
+
   /api/songs:
     get:
+      tags: [Core]
       summary: List songs
+      description: Get all songs or filter by ID, title, album, or search query
       parameters:
         - in: query
           name: id
@@ -90,10 +171,14 @@ paths:
           name: limit
           schema: { type: integer, default: 50 }
       responses:
-        '200': { description: OK }
+        '200':
+          description: Songs retrieved successfully
+
   /api/awards:
     get:
+      tags: [Core]
       summary: List awards
+      description: Get all awards or filter by year or event
       parameters:
         - in: query
           name: year
@@ -102,5 +187,95 @@ paths:
           name: event
           schema: { type: string }
       responses:
-        '200': { description: OK }
+        '200':
+          description: Awards retrieved successfully
 
+  /api/images:
+    get:
+      tags: [Images]
+      summary: List local images
+      description: Get all locally stored images (album covers, logos, group photos)
+      parameters:
+        - in: query
+          name: type
+          schema: { type: string, enum: [album, group, logo] }
+          description: Filter by image type
+      responses:
+        '200':
+          description: Images retrieved successfully
+
+  /api/images/random:
+    get:
+      tags: [Images]
+      summary: Get random local image
+      description: Get a random image from local storage
+      parameters:
+        - in: query
+          name: type
+          schema: { type: string, enum: [album, group, logo] }
+      responses:
+        '200':
+          description: Random image retrieved successfully
+
+  /api/images/albums:
+    get:
+      tags: [Images]
+      summary: Get album covers
+      description: Get all album cover images
+      responses:
+        '200':
+          description: Album images retrieved successfully
+
+  /api/random:
+    get:
+      tags: [Random]
+      summary: Get random song
+      description: Get a random song with album information
+      responses:
+        '200':
+          description: Random song retrieved successfully
+
+  /api/random/member:
+    get:
+      tags: [Random]
+      summary: Get random member
+      description: Get a random QWER member
+      responses:
+        '200':
+          description: Random member retrieved successfully
+
+  /api/random/album:
+    get:
+      tags: [Random]
+      summary: Get random album
+      description: Get a random album from discography
+      responses:
+        '200':
+          description: Random album retrieved successfully
+
+  /api/random/fact:
+    get:
+      tags: [Random]
+      summary: Get random fun fact
+      description: Get a random fun fact about a QWER member
+      responses:
+        '200':
+          description: Random fact retrieved successfully
+
+  /api/photos/status:
+    get:
+      tags: [Photos]
+      summary: Get photo cache status
+      description: Check cache status for all member photos
+      responses:
+        '200':
+          description: Cache status retrieved successfully
+
+  /api/photos/refresh:
+    get:
+      tags: [Photos]
+      summary: Refresh all member photos
+      description: Manually trigger a refresh of all member photos from Google
+      responses:
+        '200':
+          description: Photos refreshed successfully
