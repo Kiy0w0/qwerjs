@@ -38,12 +38,6 @@
       "dest": "/server.js"
     }
   ],
-  "crons": [
-    {
-      "path": "/api/photos/refresh",
-      "schedule": "0 */6 * * *"
-    }
-  ],
   "env": {
     "NODE_ENV": "production",
     "GOOGLE_API_KEY": "@google_api_key",
