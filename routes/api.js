@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { QWERBandData } = require('../data');
 const googleImages = require('../services/googleImages');
+const youtube = require('../services/youtube');
 
 // Helper function to create API response
 const apiResponse = (success, message, data, meta = null) => {
@@ -14,7 +15,7 @@ const apiResponse = (success, message, data, meta = null) => {
 router.get('/', (req, res) => {
   const apiInfo = {
     name: "QWER Band API",
-    version: "1.2.0",
+    version: "1.3.0",
     description: "REST API for QWER band information, members, songs, albums, and awards",
     band: "QWER (쿼터)",
     company: "Tamago Production",
@@ -539,6 +540,105 @@ router.get('/photos/refresh', async (req, res) => {
 router.get('/photos/status', (req, res) => {
   const status = googleImages.getCacheStatus();
   res.json(apiResponse(true, 'Cache status retrieved', status));
+});
+
+// ============================================
+// 🎬 YOUTUBE VIDEO ENDPOINTS
+// ============================================
+
+// GET /api/videos - Get QWER videos from YouTube
+router.get('/videos', async (req, res) => {
+  const type = req.query.type || 'all';
+  const forceRefresh = req.query.refresh === 'true';
+
+  // Validate type
+  const validTypes = ['all', 'mv', 'performance', 'behind', 'variety', 'cover'];
+  if (!validTypes.includes(type)) {
+    return res.status(400).json(apiResponse(false, `Invalid type. Valid types: ${validTypes.join(', ')}`, null));
+  }
+
+  try {
+    const result = await youtube.getQWERVideos(type, forceRefresh);
+
+    if (result.success) {
+      res.json(apiResponse(true, result.message, result.data));
+    } else {
+      res.status(404).json(apiResponse(false, result.message, null));
+    }
+  } catch (error) {
+    res.status(500).json(apiResponse(false, 'Error fetching videos: ' + error.message, null));
+  }
+});
+
+// GET /api/videos/random - Get a random QWER video
+router.get('/videos/random', async (req, res) => {
+  const type = req.query.type || 'all';
+
+  try {
+    const result = await youtube.getRandomVideo(type);
+
+    if (result.success) {
+      res.json(apiResponse(true, result.message, result.data));
+    } else {
+      res.status(404).json(apiResponse(false, result.message, null));
+    }
+  } catch (error) {
+    res.status(500).json(apiResponse(false, 'Error fetching video: ' + error.message, null));
+  }
+});
+
+// GET /api/videos/search - Search QWER videos
+router.get('/videos/search', async (req, res) => {
+  const query = req.query.q || 'QWER';
+  const limit = Math.min(parseInt(req.query.limit) || 10, 50);
+
+  try {
+    const videos = await youtube.searchVideos(`QWER ${query}`, limit);
+
+    if (videos.length > 0) {
+      res.json(apiResponse(true, 'Videos found', {
+        videos: videos,
+        total: videos.length,
+        query: query
+      }));
+    } else {
+      res.status(404).json(apiResponse(false, 'No videos found', null));
+    }
+  } catch (error) {
+    res.status(500).json(apiResponse(false, 'Error searching videos: ' + error.message, null));
+  }
+});
+
+// GET /api/videos/types - Get available video types (MUST be before :id route)
+router.get('/videos/types', (req, res) => {
+  res.json(apiResponse(true, 'Video types retrieved', youtube.videoCategories));
+});
+
+// GET /api/videos/cache/status - Get video cache status (MUST be before :id route)
+router.get('/videos/cache/status', (req, res) => {
+  const status = youtube.getVideoCacheStatus();
+  res.json(apiResponse(true, 'Video cache status retrieved', status));
+});
+
+// GET /api/videos/:id - Get video details by ID (MUST be LAST among /videos/* routes)
+router.get('/videos/:id', async (req, res) => {
+  const videoId = req.params.id;
+
+  if (!videoId || videoId.length !== 11) {
+    return res.status(400).json(apiResponse(false, 'Invalid video ID. YouTube video IDs are 11 characters.', null));
+  }
+
+  try {
+    const video = await youtube.getVideoDetails(videoId);
+
+    if (video) {
+      res.json(apiResponse(true, 'Video details retrieved successfully', video));
+    } else {
+      res.status(404).json(apiResponse(false, 'Video not found', null));
+    }
+  } catch (error) {
+    res.status(500).json(apiResponse(false, 'Error fetching video: ' + error.message, null));
+  }
 });
 
 module.exports = router;
