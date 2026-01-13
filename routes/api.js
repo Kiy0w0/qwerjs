@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { QWERBandData } = require('../data');
+const googleImages = require('../services/googleImages');
 
 // Helper function to create API response
 const apiResponse = (success, message, data, meta = null) => {
@@ -13,7 +14,7 @@ const apiResponse = (success, message, data, meta = null) => {
 router.get('/', (req, res) => {
   const apiInfo = {
     name: "QWER Band API",
-    version: "1.0.0",
+    version: "1.2.0",
     description: "REST API for QWER band information, members, songs, albums, and awards",
     band: "QWER (쿼터)",
     company: "Tamago Production",
@@ -67,6 +68,33 @@ router.get('/', (req, res) => {
           year: "Year (optional)",
           event: "Event name (optional)"
         }
+      },
+      "GET /api/images": {
+        description: "Get all available images",
+        parameters: {
+          type: "Filter by type: album, group, logo (optional)"
+        }
+      },
+      "GET /api/images/random": {
+        description: "Get a random image",
+        parameters: {
+          type: "Filter by type (optional)"
+        }
+      },
+      "GET /api/images/albums": {
+        description: "Get album cover images only"
+      },
+      "GET /api/random": {
+        description: "Get a random song with album info"
+      },
+      "GET /api/random/member": {
+        description: "Get a random member"
+      },
+      "GET /api/random/album": {
+        description: "Get a random album"
+      },
+      "GET /api/random/fact": {
+        description: "Get a random fun fact about a member"
       }
     },
     examples: {
@@ -79,7 +107,13 @@ router.get('/', (req, res) => {
       "Get songs by album": "/api/songs?album=manito",
       "Get all albums": "/api/albums",
       "Search albums": "/api/albums?search=blossom&sort=date",
-      "Get awards": "/api/awards?year=2024"
+      "Get awards": "/api/awards?year=2024",
+      "Random song": "/api/random",
+      "Random member": "/api/random/member",
+      "Random fact": "/api/random/fact",
+      "All images": "/api/images",
+      "Random image": "/api/images/random",
+      "Album covers only": "/api/images/albums"
     }
   };
 
@@ -108,7 +142,7 @@ router.get('/members', (req, res) => {
   // Get specific member by name
   if (name) {
     const nameLower = name.toLowerCase();
-    const member = QWERBandData.members.find(m => 
+    const member = QWERBandData.members.find(m =>
       m.stage_name.toLowerCase() === nameLower || m.name.toLowerCase() === nameLower
     );
     if (member) {
@@ -316,6 +350,195 @@ router.get('/awards', (req, res) => {
   };
 
   res.json(apiResponse(true, "Awards retrieved successfully", list, meta));
+});
+
+// ============================================
+// 🖼️ IMAGE ENDPOINTS
+// ============================================
+
+// Available images data
+const availableImages = {
+  albums: [
+    { id: 1, name: "MANITO", path: "/qwer/manito.jpeg", type: "album" },
+    { id: 2, name: "Harmony from Discord", path: "/qwer/harmonyfromdiscord.jpeg", type: "album" },
+    { id: 3, name: "Discord (TAK Remix)", path: "/qwer/discordtakremix.jpeg", type: "album" },
+    { id: 4, name: "FAKE IDOL", path: "/qwer/fake idol.jpeg", type: "album" },
+    { id: 5, name: "Algorithm's Blossom", path: "/qwer/algorithmblossom.jpeg", type: "album" },
+    { id: 6, name: "In a Million Noises", path: "/qwer/inamillionnoises.jpeg", type: "album" },
+    { id: 7, name: "Youth Promise", path: "/qwer/youthpromise.jpeg", type: "album" },
+    { id: 8, name: "Discord (Japanese Ver.)", path: "/qwer/discordjapanesever.jpeg", type: "album" }
+  ],
+  group: [
+    { id: 100, name: "QWER Group Photo", path: "/qwer/group.webp", type: "group" },
+    { id: 101, name: "QWER Logo", path: "/qwer/qwerlogo.png", type: "logo" }
+  ]
+};
+
+// GET /api/images - Get all available images
+router.get('/images', (req, res) => {
+  const { type } = req.query;
+
+  let allImages = [...availableImages.albums, ...availableImages.group];
+
+  if (type) {
+    allImages = allImages.filter(img => img.type === type.toLowerCase());
+  }
+
+  const meta = {
+    total: allImages.length,
+    types: ["album", "group", "logo"]
+  };
+
+  res.json(apiResponse(true, "Images retrieved successfully", allImages, meta));
+});
+
+// GET /api/images/random - Get a random image
+router.get('/images/random', (req, res) => {
+  const { type } = req.query;
+
+  let allImages = [...availableImages.albums, ...availableImages.group];
+
+  if (type) {
+    allImages = allImages.filter(img => img.type === type.toLowerCase());
+  }
+
+  if (allImages.length === 0) {
+    return res.status(404).json(apiResponse(false, "No images found for this type", null));
+  }
+
+  const randomIndex = Math.floor(Math.random() * allImages.length);
+  const randomImage = allImages[randomIndex];
+
+  res.json(apiResponse(true, "Random image retrieved successfully", randomImage));
+});
+
+// GET /api/images/albums - Get album cover images only
+router.get('/images/albums', (req, res) => {
+  res.json(apiResponse(true, "Album images retrieved successfully", availableImages.albums, {
+    total: availableImages.albums.length
+  }));
+});
+
+// ============================================
+// 🎲 RANDOM ENDPOINTS
+// ============================================
+
+// GET /api/random - Get random song
+router.get('/random', (req, res) => {
+  const allSongs = QWERBandData.discography.reduce((acc, album) => {
+    return acc.concat(album.songs);
+  }, []);
+
+  const randomIndex = Math.floor(Math.random() * allSongs.length);
+  const randomSong = allSongs[randomIndex];
+
+  // Find album info for the song
+  const album = QWERBandData.discography.find(a => a.title === randomSong.album);
+
+  const enrichedSong = {
+    ...randomSong,
+    album_cover: album?.cover_image || null,
+    album_type: album?.type || null
+  };
+
+  res.json(apiResponse(true, "Random song retrieved successfully! 🎵", enrichedSong));
+});
+
+// GET /api/random/member - Get random member
+router.get('/random/member', (req, res) => {
+  const randomIndex = Math.floor(Math.random() * QWERBandData.members.length);
+  const randomMember = QWERBandData.members[randomIndex];
+
+  res.json(apiResponse(true, "Random member retrieved successfully! 🎸", randomMember));
+});
+
+// GET /api/random/album - Get random album
+router.get('/random/album', (req, res) => {
+  const randomIndex = Math.floor(Math.random() * QWERBandData.discography.length);
+  const randomAlbum = QWERBandData.discography[randomIndex];
+
+  res.json(apiResponse(true, "Random album retrieved successfully! 💿", randomAlbum));
+});
+
+// GET /api/random/fact - Get random fun fact about a member
+router.get('/random/fact', (req, res) => {
+  const randomMemberIndex = Math.floor(Math.random() * QWERBandData.members.length);
+  const member = QWERBandData.members[randomMemberIndex];
+  const randomFactIndex = Math.floor(Math.random() * member.facts.length);
+
+  const fact = {
+    member: member.stage_name,
+    member_name: member.name,
+    fact: member.facts[randomFactIndex]
+  };
+
+  res.json(apiResponse(true, "Random fact retrieved successfully! ✨", fact));
+});
+
+// ============================================
+// 📸 GOOGLE IMAGE SEARCH ENDPOINTS
+// ============================================
+
+// GET /api/members/:name/photos - Get photos of a specific member from Google
+router.get('/members/:name/photos', async (req, res) => {
+  const memberName = req.params.name.toLowerCase();
+  const forceRefresh = req.query.refresh === 'true';
+
+  // Validate member name
+  const validMembers = ['chodan', 'magenta', 'hina', 'siyeon'];
+  if (!validMembers.includes(memberName)) {
+    return res.status(404).json(apiResponse(false, `Member '${memberName}' not found. Valid members: ${validMembers.join(', ')}`, null));
+  }
+
+  try {
+    const result = await googleImages.getMemberPhotos(memberName, forceRefresh);
+
+    if (result.success) {
+      res.json(apiResponse(true, result.message, result.data));
+    } else {
+      res.status(404).json(apiResponse(false, result.message, null));
+    }
+  } catch (error) {
+    res.status(500).json(apiResponse(false, 'Error fetching photos: ' + error.message, null));
+  }
+});
+
+// GET /api/members/:name/photos/random - Get a random photo of a member
+router.get('/members/:name/photos/random', async (req, res) => {
+  const memberName = req.params.name.toLowerCase();
+
+  const validMembers = ['chodan', 'magenta', 'hina', 'siyeon'];
+  if (!validMembers.includes(memberName)) {
+    return res.status(404).json(apiResponse(false, `Member '${memberName}' not found`, null));
+  }
+
+  try {
+    const result = await googleImages.getRandomMemberPhoto(memberName);
+
+    if (result.success) {
+      res.json(apiResponse(true, result.message, result.data));
+    } else {
+      res.status(404).json(apiResponse(false, result.message, null));
+    }
+  } catch (error) {
+    res.status(500).json(apiResponse(false, 'Error fetching photo: ' + error.message, null));
+  }
+});
+
+// GET /api/photos/refresh - Refresh all member photos from Google
+router.get('/photos/refresh', async (req, res) => {
+  try {
+    const result = await googleImages.refreshAllMemberPhotos();
+    res.json(apiResponse(true, result.message, result.data));
+  } catch (error) {
+    res.status(500).json(apiResponse(false, 'Error refreshing photos: ' + error.message, null));
+  }
+});
+
+// GET /api/photos/status - Get cache status for all members
+router.get('/photos/status', (req, res) => {
+  const status = googleImages.getCacheStatus();
+  res.json(apiResponse(true, 'Cache status retrieved', status));
 });
 
 module.exports = router;

@@ -1,10 +1,11 @@
 # Dependencies
 node_modules/
-package-lock.json
 yarn.lock
 
-# Environment variables
+# Environment variables (contains API keys!)
 .env
+.env.local
+.env.*.local
 
 # Logs
 logs/
@@ -16,19 +17,46 @@ yarn-error.log*
 # OS files
 .DS_Store
 Thumbs.db
+Desktop.ini
 
-# IDE
+# IDE / Editor
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
+*.sublime-project
+*.sublime-workspace
 
 # Build outputs
 dist/
 build/
+.next/
+out/
 
 # Temporary files
 tmp/
 temp/
+.cache/
 
+# Vercel
+.vercel/
+
+# Coverage
+coverage/
+.nyc_output/
+
+# Debug
+*.pid
+*.seed
+*.pid.lock
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Misc
+*.bak
+*.backup
